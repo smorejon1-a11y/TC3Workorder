@@ -1197,11 +1197,11 @@
             document.getElementById('requestModal').classList.remove('active');
         }
 
-        function submitServiceRequest(event) {
+        function submitWorkOrder(event) {
             event.preventDefault();
 
             const newRequest = {
-                id: `SR-2024-${String(serviceRequests.length + 1).padStart(3, '0')}`,
+                id: `WO-2024-${String(serviceRequests.length + 1).padStart(3, '0')}`,
                 title: document.getElementById('title').value,
                 location: document.getElementById('location').value,
                 category: document.getElementById('category').value,
@@ -1211,7 +1211,7 @@
                 submittedBy: currentUser.name,
                 submittedDate: new Date().toISOString().split('T')[0],
                 updates: [
-                    { status: 'Open', date: new Date().toISOString().split('T')[0], note: 'Request submitted' }
+                    { status: 'Open', date: new Date().toISOString().split('T')[0], note: 'Order submitted' }
                 ]
             };
 
