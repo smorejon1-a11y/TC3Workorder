@@ -1308,7 +1308,7 @@
 
         let currentUser = {
             name: 'John Doe',
-            email: 'john.doe@example.com',
+            email: 'john.doe@company.com',
             role: 'employee' // 'employee', 'technician', or 'admin'
         };
 
@@ -1540,33 +1540,47 @@
         function submitWorkOrder(event) {
             event.preventDefault();
 
-            const newOrder = {
-                id: `WO-2024-${String(workOrders.length + 1).padStart(3, '0')}`,
-                title: document.getElementById('title').value,
-                location: document.getElementById('location').value,
-                category: document.getElementById('category').value,
-                priority: document.getElementById('priority').value,
-                description: document.getElementById('description').value,
-                status: 'Open',
+            const title = document.getElementById('title').value;
+            const location = document.getElementById('location').value;
+            const category = document.getElementById('category').value;
+            const priority = document.getElementById('priority').value;
+            const description = document.getElementById('description').value;
+            const estimatedBudget = parseFloat(document.getElementById('estimatedBudget').value) || 0;
+
+            // Send to Apps Script backend
+            const payload = {
+                action: 'submitWorkOrder',
+                title: title,
+                location: location,
+                category: category,
+                priority: priority,
+                description: description,
+                estimatedCost: estimatedBudget,
                 submittedBy: currentUser.name,
-                submittedDate: new Date().toISOString().split('T')[0],
-                assignedTo: null,
-                estimatedCost: parseFloat(document.getElementById('estimatedBudget').value) || 0,
-                actualCost: 0,
-                dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                photos: [],
-                comments: [],
-                updates: [
-                    { status: 'Open', date: new Date().toISOString().split('T')[0], note: 'Order submitted' }
-                ]
+                submitterEmail: currentUser.email
             };
 
-            workOrders.push(newOrder);
-            document.getElementById('newOrderForm').reset();
-            document.getElementById('photoGallery').innerHTML = '';
-
-            showNotification('success', 'Work order submitted successfully!', 'WO-' + newOrder.id.split('-')[2] + ' created');
-            switchSection('my-orders');
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('newOrderForm').reset();
+                    document.getElementById('photoGallery').innerHTML = '';
+                    showNotification('success', 'Work order submitted successfully!', 'Order ID: ' + data.orderId);
+                    switchSection('my-orders');
+                    // Reload orders to show the new one
+                    setTimeout(loadMyOrders, 1000);
+                } else {
+                    showNotification('error', 'Failed to submit work order', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'Error submitting work order', error.message);
+            });
         }
 
         function handlePhotoUpload(event) {
